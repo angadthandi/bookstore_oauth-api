@@ -1,9 +1,10 @@
 package app
 
 import (
-	"github.com/angadthandi/bookstore_oauth-api/src/domain/access_token"
 	"github.com/angadthandi/bookstore_oauth-api/src/http"
 	"github.com/angadthandi/bookstore_oauth-api/src/repository/db"
+	"github.com/angadthandi/bookstore_oauth-api/src/repository/rest"
+	"github.com/angadthandi/bookstore_oauth-api/src/services/access_token"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,8 +13,9 @@ var (
 )
 
 func StartApplication() {
+	usersRepo := rest.New()
 	dbRepository := db.New()
-	atService := access_token.New(dbRepository)
+	atService := access_token.New(usersRepo, dbRepository)
 	atHandler := http.NewHandler(atService)
 
 	router.GET("/oauth/access_token/:access_token_id", atHandler.GetByID)

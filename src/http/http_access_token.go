@@ -3,7 +3,8 @@ package http
 import (
 	"net/http"
 
-	"github.com/angadthandi/bookstore_oauth-api/src/domain/access_token"
+	atDomain "github.com/angadthandi/bookstore_oauth-api/src/domain/access_token"
+	"github.com/angadthandi/bookstore_oauth-api/src/services/access_token"
 	"github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
 	"github.com/gin-gonic/gin"
 )
@@ -39,27 +40,27 @@ func (h *accessTokenHandler) GetByID(
 func (h *accessTokenHandler) Create(
 	c *gin.Context,
 ) {
-	var at access_token.AccessToken
-	err := c.ShouldBindJSON(&at)
+	var request atDomain.AccessTokenRequest
+	err := c.ShouldBindJSON(&request)
 	if err != nil {
 		restErr := errors.NewBadRequestError("invalid json body")
 		c.JSON(restErr.Status, restErr)
 		return
 	}
 
-	createErr := h.service.Create(at)
+	accessToken, createErr := h.service.Create(request)
 	if createErr != nil {
 		c.JSON(createErr.Status, createErr)
 		return
 	}
 
-	c.JSON(http.StatusCreated, at)
+	c.JSON(http.StatusCreated, accessToken)
 }
 
 func (h *accessTokenHandler) UpdateExpirationTime(
 	c *gin.Context,
 ) {
-	var at access_token.AccessToken
+	var at atDomain.AccessToken
 	err := c.ShouldBindJSON(&at)
 	if err != nil {
 		restErr := errors.NewBadRequestError("invalid json body")
