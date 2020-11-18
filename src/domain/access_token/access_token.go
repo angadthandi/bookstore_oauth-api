@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/angadthandi/bookstore_oauth-api/src/utils/crypto_utils"
-	"github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
+	// "github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
+	"github.com/angadthandi/bookstore_utils-go/rest_errors"
 )
 
 const (
@@ -28,14 +29,14 @@ type AccessTokenRequest struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-func (atReq *AccessTokenRequest) Validate() *errors.RestErr {
+func (atReq *AccessTokenRequest) Validate() rest_errors.RestErr {
 	switch atReq.GrantType {
 	case grantTypePassword:
 		break
 	case grantTypeClientCredentials:
 		break
 	default:
-		return errors.NewBadRequestError("invalid grant type")
+		return rest_errors.NewBadRequestError("invalid grant type")
 	}
 
 	return nil
@@ -48,16 +49,16 @@ type AccessToken struct {
 	Expires     int64  `json:"expires"`
 }
 
-func (at *AccessToken) Validate() *errors.RestErr {
+func (at *AccessToken) Validate() rest_errors.RestErr {
 	at.AccessToken = strings.TrimSpace(at.AccessToken)
 	if at.AccessToken == "" {
-		return errors.NewBadRequestError("invalid access token id")
+		return rest_errors.NewBadRequestError("invalid access token id")
 	}
 
 	if at.UserID <= 0 ||
 		at.ClientID <= 0 ||
 		at.Expires <= 0 {
-		return errors.NewBadRequestError("invalid access userid or clientid or expires")
+		return rest_errors.NewBadRequestError("invalid access userid or clientid or expires")
 	}
 
 	return nil

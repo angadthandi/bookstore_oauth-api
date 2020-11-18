@@ -1,9 +1,13 @@
 package db
 
 import (
+	"errors"
+
 	"github.com/angadthandi/bookstore_oauth-api/src/clients/cassandra"
 	"github.com/angadthandi/bookstore_oauth-api/src/domain/access_token"
-	"github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
+
+	// "github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
+	"github.com/angadthandi/bookstore_utils-go/rest_errors"
 )
 
 const (
@@ -18,9 +22,9 @@ const (
 )
 
 type DBRepository interface {
-	GetByID(string) (*access_token.AccessToken, *errors.RestErr)
-	Create(access_token.AccessToken) *errors.RestErr
-	UpdateExpirationTime(access_token.AccessToken) *errors.RestErr
+	GetByID(string) (*access_token.AccessToken, rest_errors.RestErr)
+	Create(access_token.AccessToken) rest_errors.RestErr
+	UpdateExpirationTime(access_token.AccessToken) rest_errors.RestErr
 }
 
 type dbRepository struct {
@@ -32,7 +36,7 @@ func New() DBRepository {
 
 func (r *dbRepository) GetByID(
 	id string,
-) (*access_token.AccessToken, *errors.RestErr) {
+) (*access_token.AccessToken, rest_errors.RestErr) {
 	var ret access_token.AccessToken
 	err := cassandra.GetSession().
 		Query(queryGetAccessToken, id).
@@ -43,7 +47,11 @@ func (r *dbRepository) GetByID(
 			&ret.Expires,
 		)
 	if err != nil {
-		return nil, errors.NewInternalServerError(err.Error())
+		// return nil, rest_errors.NewInternalServerError(err.Error(), nil)
+		return nil, rest_errors.NewInternalServerError(
+			"error when trying to get current id",
+			errors.New("database error"),
+		)
 	}
 
 	return &ret, nil
@@ -51,7 +59,7 @@ func (r *dbRepository) GetByID(
 
 func (rr *dbRepository) Create(
 	at access_token.AccessToken,
-) *errors.RestErr {
+) rest_errors.RestErr {
 	err := cassandra.GetSession().
 		Query(
 			queryCreateAccessToken,
@@ -62,7 +70,11 @@ func (rr *dbRepository) Create(
 		).
 		Exec()
 	if err != nil {
-		return errors.NewInternalServerError(err.Error())
+		// return rest_errors.NewInternalServerError(err.Error(), nil)
+		return rest_errors.NewInternalServerError(
+			"error when trying to create new resource",
+			errors.New("database error"),
+		)
 	}
 
 	return nil
@@ -70,7 +82,7 @@ func (rr *dbRepository) Create(
 
 func (rr *dbRepository) UpdateExpirationTime(
 	at access_token.AccessToken,
-) *errors.RestErr {
+) rest_errors.RestErr {
 	err := cassandra.GetSession().
 		Query(
 			queryUpdateExpires,
@@ -79,7 +91,11 @@ func (rr *dbRepository) UpdateExpirationTime(
 		).
 		Exec()
 	if err != nil {
-		return errors.NewInternalServerError(err.Error())
+		// return rest_errors.NewInternalServerError(err.Error(), nil)
+		return rest_errors.NewInternalServerError(
+			"error when trying to update current resource",
+			errors.New("database error"),
+		)
 	}
 
 	return nil

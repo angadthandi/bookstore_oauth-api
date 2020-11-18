@@ -2,10 +2,12 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/angadthandi/bookstore_oauth-api/src/domain/users"
-	"github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
+	// "github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
+	"github.com/angadthandi/bookstore_utils-go/rest_errors"
 	"github.com/mercadolibre/golang-restclient/rest"
 )
 
@@ -22,7 +24,7 @@ var (
 )
 
 type RestUsersRepository interface {
-	LoginUser(string, string) (*users.User, *errors.RestErr)
+	LoginUser(string, string) (*users.User, rest_errors.RestErr)
 }
 
 type userRepository struct {
@@ -35,7 +37,7 @@ func New() RestUsersRepository {
 func (repo *userRepository) LoginUser(
 	email string,
 	password string,
-) (*users.User, *errors.RestErr) {
+) (*users.User, rest_errors.RestErr) {
 	req := users.UserLoginRequest{
 		Email:    email,
 		Password: password,
@@ -43,27 +45,32 @@ func (repo *userRepository) LoginUser(
 
 	resp := usersRestClient.Post("/users/login", req)
 	if resp == nil || resp.Response == nil {
-		return nil, errors.NewInternalServerError(
+		return nil, rest_errors.NewInternalServerError(
 			InvalidRestClientErrMsg,
+			errors.New("restclient error"),
 		)
 	}
 
 	if resp.StatusCode > 299 {
-		var restErr errors.RestErr
-		err := json.Unmarshal(resp.Bytes(), &restErr)
+		apiErr, err := rest_errors.NewRestErrorFromBytes(resp.Bytes())
+		// var restErr rest_errors.RestErr
+		// err := json.Unmarshal(resp.Bytes(), &restErr)
 		if err != nil {
-			return nil, errors.NewInternalServerError(
+			return nil, rest_errors.NewInternalServerError(
 				InvalidErrorInterfaceErrMsg,
+				err,
 			)
 		}
-		return nil, &restErr
+		// return nil, restErr
+		return nil, apiErr
 	}
 
 	var user users.User
 	err := json.Unmarshal(resp.Bytes(), &user)
 	if err != nil {
-		return nil, errors.NewInternalServerError(
+		return nil, rest_errors.NewInternalServerError(
 			UnmarshalErrMsg,
+			errors.New("json parse error"),
 		)
 	}
 

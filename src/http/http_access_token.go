@@ -5,7 +5,9 @@ import (
 
 	atDomain "github.com/angadthandi/bookstore_oauth-api/src/domain/access_token"
 	"github.com/angadthandi/bookstore_oauth-api/src/services/access_token"
-	"github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
+
+	// "github.com/angadthandi/bookstore_oauth-api/src/utils/errors"
+	"github.com/angadthandi/bookstore_utils-go/rest_errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,7 +32,7 @@ func (h *accessTokenHandler) GetByID(
 ) {
 	accessToken, err := h.service.GetByID(c.Param("access_token_id"))
 	if err != nil {
-		c.JSON(err.Status, err)
+		c.JSON(err.Status(), err)
 		return
 	}
 
@@ -43,14 +45,14 @@ func (h *accessTokenHandler) Create(
 	var request atDomain.AccessTokenRequest
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
-		restErr := errors.NewBadRequestError("invalid json body")
-		c.JSON(restErr.Status, restErr)
+		restErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status(), restErr)
 		return
 	}
 
 	accessToken, createErr := h.service.Create(request)
 	if createErr != nil {
-		c.JSON(createErr.Status, createErr)
+		c.JSON(createErr.Status(), createErr)
 		return
 	}
 
@@ -63,14 +65,14 @@ func (h *accessTokenHandler) UpdateExpirationTime(
 	var at atDomain.AccessToken
 	err := c.ShouldBindJSON(&at)
 	if err != nil {
-		restErr := errors.NewBadRequestError("invalid json body")
-		c.JSON(restErr.Status, restErr)
+		restErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status(), restErr)
 		return
 	}
 
 	updateErr := h.service.UpdateExpirationTime(at)
 	if updateErr != nil {
-		c.JSON(updateErr.Status, updateErr)
+		c.JSON(updateErr.Status(), updateErr)
 		return
 	}
 
